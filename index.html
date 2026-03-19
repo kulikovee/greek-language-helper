@@ -305,7 +305,7 @@
     function checkAnswerText(e) {
       if (!e || (e.key === "Enter" || e.code === "Enter")) {
         const input = document.querySelector("#quest-answer-text");
-        if (input.value.toLowerCase().replace("θα ", "") === randomVerb.verb[randomVerb.time][randomVerb.person].toLowerCase().replace("θα ", "")) {
+        if (input.value.toLowerCase().replace("θα ", "").trim() === randomVerb.verb[randomVerb.time][randomVerb.person].toLowerCase().replace("θα ", "").trim()) {
           input.style.color = "#7f7";
           countSuccess();
           setTimeout(() => {
@@ -325,7 +325,7 @@
 
     function selectTestAnswer(e) {
       const input = e.target;
-      if (input.value.toLowerCase().replace("θα ", "") === randomVerb.verb[randomVerb.time][randomVerb.person].toLowerCase().replace("θα ", "")) {
+      if (input.value.toLowerCase().replace("θα ", "").trim() === randomVerb.verb[randomVerb.time][randomVerb.person].toLowerCase().replace("θα ", "").trim()) {
         input.style.color = "#7f7";
         countSuccess();
         setTimeout(() => {
