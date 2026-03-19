@@ -455,7 +455,6 @@
         "ώ": "ό",
         "ο": "ω",
         "ό": "ώ",
-        "θ": "φ",
         "αβ": "αυ",
         "εβ": "ευ",
         "εισε": "ησε",
@@ -463,10 +462,14 @@
       };
 
       Object.keys(replaces).forEach(key => {
-        const idx = correctAnswer.lastIndexOf(key);
 
         if (correctAnswer.indexOf(key) > -1) {
-          randomVariants.push(correctAnswer.substring(0, idx) + replaces[key] + correctAnswer.substring(idx + key.length));
+          if (Math.random() > 0.5) {
+            randomVariants.push(correctAnswer.replace(key, replaces[key]));
+          } else {
+            const idx = correctAnswer.lastIndexOf(key);
+            randomVariants.push(correctAnswer.substring(0, idx) + replaces[key] + correctAnswer.substring(idx + key.length));
+          }
         }
       });
 
