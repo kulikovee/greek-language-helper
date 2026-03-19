@@ -463,8 +463,10 @@
       };
 
       Object.keys(replaces).forEach(key => {
+        const idx = correctAnswer.lastIndexOf(key);
+
         if (correctAnswer.indexOf(key) > -1) {
-          randomVariants.push(correctAnswer.replace(key, replaces[key]));
+          randomVariants.push(correctAnswer.substring(0, idx) + replaces[key] + correctAnswer.substring(idx + key.length));
         }
       });
 
