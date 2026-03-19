@@ -31,7 +31,7 @@
     background: rgba(255, 255, 255, 0.1);
   }
 
-  #quest, #config {
+  #quest, #config, #verbs {
     border: 1px solid white;
     border-radius: 10px;
     padding: 10px;
@@ -41,8 +41,29 @@
     cursor: pointer;
   }
 
-  #config {
+  #config, #verbs {
     display: none;
+  }
+
+  #verbs {
+    max-height: 80vh;
+    overflow-y: scroll;
+  }
+
+  #verbs td {
+    padding: 5px;
+  }
+
+  #verbs tr.verb-time-0 > td {
+    color: #ffc;
+  }
+
+  #verbs tr.verb-time-1 > td {
+    color: #cff;
+  }
+
+  #verbs tr.verb-time-2 > td {
+    color: #fcf;
   }
 
   #quest-title,
@@ -51,7 +72,7 @@
     text-align: center;
   }
 
-  #quest-title {
+  #quest-title, #verbs > table {
     font-size: 24pt;
   }
 
@@ -59,7 +80,7 @@
     font-size: 40pt;
   }
 
-  #config-btn {
+  #config-btn, #verbs-btn {
     font-size: 16pt;
     position: fixed;
     border: 1px solid white;
@@ -70,11 +91,16 @@
     cursor: pointer;
   }
 
-  #config-btn:hover {
+  #verbs-btn {
+    right: unset;
+    left: 15px;
+  }
+
+  #config-btn:hover, #verbs-btn:hover {
     text-decoration: underline;
   }
 
-  #config-btn:active {
+  #config-btn:active, #verbs-btn:active {
     color: #afa;
   }
 
@@ -117,12 +143,6 @@
     border-radius: 0 10px 10px 0;
   }
 
-  #quest-answer-text-wrapper > input[type=button]#give-up {
-    border-radius: 15px;
-    background: transparent;
-    border: 1px solid white;
-  }
-
   .config-time-row {
     display: flex;
     flex-direction: row;
@@ -139,10 +159,6 @@
   }
 
   @media only screen and (max-width: 650px) {
-    #give-up {
-      margin-bottom: 10px;
-    }
-
     #quest-answer-text {
       font-size: 15pt;
       width: 100%;
@@ -169,7 +185,6 @@
   <div id="quest-title">...</div>
   <div id="quest-answer">...</div>
   <div id="quest-answer-text-wrapper">
-    <input type="button" id="give-up" value="сдаюсь" />
     <input id="quest-answer-text" />
     <input type="button" id="check-text-answer" value="проверить" />
   </div>
@@ -181,6 +196,7 @@
   </div>
 </div>
 
+<button id="verbs-btn">глагол</button>
 <button id="config-btn">настройки</button>
 
 <div id="config">
@@ -231,8 +247,8 @@
     document.querySelectorAll("input.config-time, #config-answer-type").forEach(el => el.onchange = updateConfig);
     document.querySelectorAll(".test-answer").forEach(el => el.onclick = selectTestAnswer);
     document.querySelector("#config-btn").onclick = toggleSettings;
+    document.querySelector("#verbs-btn").onclick = toggleVerbs;
     document.querySelector("#config-close").onclick = toggleSettings;
-    document.querySelector("#give-up").onclick = pasteAnswerText;
     document.querySelector("#check-text-answer").onclick = () => checkAnswerText();
     elements.quest.onclick = showAnswer;
 
@@ -262,6 +278,7 @@
       const correctAnswer = randomVerb.verb[randomVerb.time][randomVerb.person];
       elements.questAnswer.textContent = correctAnswer;
       generateTestAnswers(correctAnswer);
+      updateVerbList();
     }
 
     function showAnswer() {
@@ -296,8 +313,22 @@
       if (elements.config.style.display === "flex") {
         elements.config.style.display = "none";
         elements.quest.style.display = "flex";
+        elements.verbs.style.display = "none";
       } else {
         elements.config.style.display = "flex";
+        elements.quest.style.display = "none";
+        elements.verbs.style.display = "none";
+      }
+    }
+
+    function toggleVerbs() {
+      if (elements.verbs.style.display === "flex") {
+        elements.config.style.display = "none";
+        elements.verbs.style.display = "none";
+        elements.quest.style.display = "flex";
+      } else {
+        elements.config.style.display = "none";
+        elements.verbs.style.display = "flex";
         elements.quest.style.display = "none";
       }
     }
@@ -356,11 +387,6 @@
       elements.statistics.textContent = `отвечено ${totalAnswered}, ошибок ${totalMistakes} (точность ${Math.round(100 * totalAnswered / ((totalAnswered + totalMistakes) || 1))}%)`;
     }
 
-    function pasteAnswerText(e) {
-      elements.questAnswerText.value =  randomVerb.verb[randomVerb.time][randomVerb.person];
-      countMistakes();
-    }
-
     setTimeout(() => {
       if (localStorage.getItem("answerType")) {
         elements.configAnswerType.value = localStorage.getItem("answerType");
@@ -386,6 +412,32 @@
         showAnswer();
       }
     });
+
+    function updateVerbList() {
+      if (document.getElementById("verbs")) {
+        document.getElementById("verbs").remove();
+      }
+
+      const verbsWrapper = document.createElement("div");
+      verbsWrapper.id = "verbs";
+      const verbsList = document.createElement("table");
+      ["Ενεστώτας", "Αόριστος", "Μέλλοντας"].forEach((t, i) => {
+        Object.keys(randomVerb.verb[t]).forEach((key) => {
+          const verbsListItem = document.createElement("tr");
+          verbsListItem.classList.add("verb-time-" + i);
+          const verbListItemPerson = document.createElement("td");
+          verbListItemPerson.textContent = key;
+          verbsListItem.append(verbListItemPerson);
+          const verbListItemVerb = document.createElement("td");
+          verbListItemVerb.textContent = randomVerb.verb[t][key];
+          verbsListItem.append(verbListItemVerb);
+          verbsList.append(verbsListItem);
+        });
+      });
+      verbsWrapper.append(verbsList);
+      document.body.append(verbsWrapper);
+      elements.verbs = verbsWrapper;
+    }
 
     function generateTestAnswers(correctAnswer) {
       const randomVariants = [];
