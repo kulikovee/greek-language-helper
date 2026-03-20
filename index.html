@@ -408,8 +408,10 @@
 
     function countSuccess() {
       totalAnswered++;
-      navigator.vibrate(200);
       updateStatistics();
+      try {
+        navigator.vibrate(200);
+      } catch (e) {}
     }
 
     function updateStatistics() {
