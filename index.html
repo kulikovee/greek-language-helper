@@ -139,11 +139,11 @@
     color: var(--text-color-btn-active);
   }
 
-  label.config-time, label.config-answer-text {
+  label.config-time, label.config-answer-text, label.config-theme, label.config-extra-verbs {
     padding: 10px;
   }
 
-  input.config-time, input.config-answer-text {
+  input.config-time, input.config-answer-text, input.config-extra-verbs {
     width: 25px;
     height: 25px;
   }
@@ -273,11 +273,18 @@
       <label for="config-time-future" class="config-time"> — будущее</label>
     </div>
     <hr />
-      <label for="config-theme" class="config-theme">Тема:</label>
+    <div class="config-time-row">
+      <input id="config-extra-verbs-1" class="config-extra-verbs" type="checkbox" checked />
+      <label for="config-extra-verbs-1" class="config-extra-verbs"> — дополнительные глаголы</label>
+    </div>
+    <hr />
+    <div class="config-time-row">
+      <label for="config-theme" class="config-theme">Тема: </label>
       <select id="config-theme">
         <option value="темная">темная</option>
         <option value="светлая">светлая</option>
       </select>
+    </div>
     <hr />
     <input id="config-close" type="button" value="закрыть" />
   </div>
@@ -316,7 +323,8 @@
       verbs: document.querySelector("#verbs"),
     };
 
-    document.querySelectorAll("input.config-time, #config-answer-type, #config-theme").forEach(el => el.onchange = updateConfig);
+    document.querySelectorAll("input.config-time, #config-answer-type, #config-theme, .config-extra-verbs")
+            .forEach(el => el.onchange = updateConfig);
     document.querySelectorAll(".test-answer").forEach(el => el.onclick = selectTestAnswer);
     document.querySelector("#config-btn").onclick = toggleSettings;
     document.querySelector("#verbs-btn").onclick = toggleVerbs;
@@ -325,9 +333,11 @@
     elements.quest.onclick = showAnswer;
 
     const verbs = await fetch("https://kulikovee.github.io/greek-language-helper/verbs-1.json").then(res => res.json());
+    const verbs1 = await fetch("https://kulikovee.github.io/greek-language-helper/verbs-2.json").then(res => res.json());
     const randomVerb = { verb: null, person: null, time: null };
     let time = null;
     let answerType = null;
+    let extraVerbs1 = !!localStorage.getItem("extraVerbs1");
     let theme = null;
     let totalAnswered = 0;
     let totalMistakes = 0;
@@ -341,11 +351,11 @@
     const getRandom = arr => arr[Math.floor(Math.random() * arr.length)]
 
     function nextRandomVerb() {
-      randomVerb.verb = getRandom(verbs);
+      randomVerb.verb = getRandom(extraVerbs1 ? [...verbs, ...verbs1] : verbs);
       randomVerb.time = getRandom(time);
       randomVerb.person = getRandom(['εγώ', 'εσύ', 'αυτός/αυτή', 'εμείς', 'εσείς', 'αυτοί']);
 
-      elements.questTitle.textContent = `${randomVerb.verb.verb_ru} - ${time_i[randomVerb.time]} - ${randomVerb.person}`;
+      elements.questTitle.textContent = `${randomVerb.verb.verb_ru} / ${time_i[randomVerb.time]} / ${randomVerb.person}`;
       elements.questAnswer.style.color = 'rgba(0, 0, 0, 0)';
 
       const correctAnswer = randomVerb.verb[randomVerb.time][randomVerb.person];
@@ -367,6 +377,8 @@
     function updateConfig() {
       time = [...document.querySelectorAll("input.config-time:checked")].map(i => i.getAttribute("data"));
       answerType = document.querySelector("#config-answer-type").value;
+      extraVerbs1 = !!document.querySelector("#config-extra-verbs-1:checked");
+      console.log("update", { extraVerbs1 });
       theme = elements.configTheme.value;
 
       if (!time.length) {
@@ -376,6 +388,7 @@
       localStorage.setItem("time", JSON.stringify(time));
       localStorage.setItem("answerType", answerType);
       localStorage.setItem("theme", theme);
+      localStorage.setItem("extraVerbs1", extraVerbs1 ? "1" : "");
 
       elements.questAnswerTextWrapper.style.display = answerType === "полнотекстовый ввод" ? "flex" : "none";
       elements.questAnswerTest.style.display = answerType === "тест" ? "flex" : "none";
@@ -479,6 +492,7 @@
       document.querySelector("input[data=Ενεστώτας]").checked = defaultTime.indexOf("Ενεστώτας") > -1;
       document.querySelector("input[data=Αόριστος]").checked = defaultTime.indexOf("Αόριστος") > -1;
       document.querySelector("input[data=Μέλλοντας]").checked = defaultTime.indexOf("Μέλλοντας") > -1;
+      document.querySelector("input#config-extra-verbs-1").checked = extraVerbs1;
     }
     updateConfig();
 
@@ -602,8 +616,8 @@
       });
 
       const wrongPersons = ['εγώ', 'εσύ', 'αυτός/αυτή', 'εμείς', 'εσείς', 'αυτοί']
-        .filter(p => p !== randomVerb.person)
-        .sort(() => Math.random() - 0.5);
+              .filter(p => p !== randomVerb.person)
+              .sort(() => Math.random() - 0.5);
 
       while (randomVariants.length < 3) {
         randomVariants.push(randomVerb.verb[randomVerb.time][wrongPersons.shift()]);
@@ -612,7 +626,7 @@
       randomVariants.sort(() => Math.random() - 0.5);
 
       const answers = [elements.testAnswer1, elements.testAnswer2, elements.testAnswer3, elements.testAnswer4]
-        .sort(() => Math.random() - 0.5);
+              .sort(() => Math.random() - 0.5);
 
       answers[0].value = correctAnswer;
       answers[1].value = randomVariants[0];
