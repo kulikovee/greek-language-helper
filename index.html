@@ -1,4 +1,3 @@
-
 <html>
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -7,9 +6,32 @@
 <body>
 <style>
   * {
-    background: black;
-    color: white;
+    --text-color: white;
+    --background-color: black;
+    --text-color-wrong: #f77;
+    --text-color-correct: #7f7;
+    --text-color-time-0: #ffc;
+    --text-color-time-1: #cff;
+    --text-color-time-2: #fcf;
+    --text-color-btn-active: #afa;
+    --text-color-btn-neutral: #555;
+
+    background: var(--background-color);
+    color: var(--text-color);
+    font-family: sans-serif;
     user-select: none;
+  }
+
+  body.light, body.light * {
+    --text-color: black;
+    --background-color: white;
+    --text-color-wrong: #a00;
+    --text-color-correct: #0a0;
+    --text-color-time-0: #500;
+    --text-color-time-1: #050;
+    --text-color-time-2: #005;
+    --text-color-btn-active: #050;
+    --text-color-btn-neutral: #ccc;
   }
 
   hr {
@@ -37,8 +59,12 @@
     background: rgba(255, 255, 255, 0.1);
   }
 
+  body.light input[type=button]:hover {
+    background: rgba(0, 0, 0, 0.1);
+  }
+
   #quest, #config, #verbs {
-    border: 1px solid white;
+    border: 1px solid var(--text-color);
     border-radius: 10px;
     padding: 10px;
     display: flex;
@@ -61,15 +87,15 @@
   }
 
   #verbs tr.verb-time-0 > td {
-    color: #ffc;
+    color: var(--text-color-time-0);
   }
 
   #verbs tr.verb-time-1 > td {
-    color: #cff;
+    color: var(--text-color-time-1);
   }
 
   #verbs tr.verb-time-2 > td {
-    color: #fcf;
+    color: var(--text-color-time-2);
   }
 
   #quest-title,
@@ -88,7 +114,7 @@
 
   #config-btn, #verbs-btn {
     font-size: 16pt;
-    border: 1px solid white;
+    border: 1px solid var(--text-color);
     border-radius: 5px;
     padding: 10px;
     cursor: pointer;
@@ -104,7 +130,7 @@
   }
 
   #config-btn:active, #verbs-btn:active {
-    color: #afa;
+    color: var(--text-color-btn-active);
   }
 
   label.config-time, label.config-answer-text {
@@ -139,8 +165,9 @@
     flex: 1 1 auto;
     border-radius: 10px 0 0 10px;
   }
+
   #quest-answer-text-wrapper > input[type=button] {
-    background: rgba(255, 255, 255, 0.5);
+    background: var(--text-color-btn-neutral);
     border-radius: 0 10px 10px 0;
   }
 
@@ -156,7 +183,7 @@
     display: flex;
     flex: 0 0 auto;
     padding: 15px;
-    color: rgba(255, 255, 255, 0.5);
+    color: var(--text-color-btn-neutral);
   }
 
   @media only screen and (max-width: 650px) {
@@ -222,7 +249,7 @@
       <label for="config-answer-type" class="config-answer-text">Ввод ответа:</label>
       <select id="config-answer-type">
         <option value="простое открытие">простое открытие</option>
-        <option value="тест">тест</option>
+        <option value="тест">тест с вариантами</option>
         <option value="полнотекстовый ввод">полнотекстовый ввод</option>
       </select>
     </div>
@@ -240,6 +267,12 @@
       <label for="config-time-future" class="config-time"> — будущее</label>
     </div>
     <hr />
+      <label for="config-theme" class="config-theme">Тема:</label>
+      <select id="config-theme">
+        <option value="темная">темная</option>
+        <option value="светлая">светлая</option>
+      </select>
+    <hr />
     <input id="config-close" type="button" value="закрыть" />
   </div>
 
@@ -252,6 +285,12 @@
 </div>
 
 <script>
+  if (localStorage.getItem("theme") === "светлая") {
+    document.body.classList.add("light");
+  } else {
+    document.body.classList.remove("light");
+  }
+
   window.onload = async () => {
     const elements = {
       config: document.querySelector("#config"),
@@ -262,6 +301,7 @@
       questAnswerText: document.querySelector("#quest-answer-text"),
       questAnswerTextWrapper: document.querySelector("#quest-answer-text-wrapper"),
       configAnswerType: document.querySelector("#config-answer-type"),
+      configTheme: document.querySelector("#config-theme"),
       testAnswer1: document.querySelector("#test-answer-1"),
       testAnswer2: document.querySelector("#test-answer-2"),
       testAnswer3: document.querySelector("#test-answer-3"),
@@ -270,7 +310,7 @@
       verbs: document.querySelector("#verbs"),
     };
 
-    document.querySelectorAll("input.config-time, #config-answer-type").forEach(el => el.onchange = updateConfig);
+    document.querySelectorAll("input.config-time, #config-answer-type, #config-theme").forEach(el => el.onchange = updateConfig);
     document.querySelectorAll(".test-answer").forEach(el => el.onclick = selectTestAnswer);
     document.querySelector("#config-btn").onclick = toggleSettings;
     document.querySelector("#verbs-btn").onclick = toggleVerbs;
@@ -282,6 +322,7 @@
     const randomVerb = { verb: null, person: null, time: null };
     let time = null;
     let answerType = null;
+    let theme = null;
     let totalAnswered = 0;
     let totalMistakes = 0;
 
@@ -309,10 +350,10 @@
 
     function showAnswer() {
       if (answerType === "простое открытие") {
-        if (elements.questAnswer.style.color === 'white') {
-          nextRandomVerb();
+        if (elements.questAnswer.style.color === 'rgba(0, 0, 0, 0)') {
+          elements.questAnswer.style.color = theme === 'светлая' ? 'black' : 'white';
         } else {
-          elements.questAnswer.style.color = 'white';
+          nextRandomVerb();
         }
       }
     }
@@ -320,6 +361,7 @@
     function updateConfig() {
       time = [...document.querySelectorAll("input.config-time:checked")].map(i => i.getAttribute("data"));
       answerType = document.querySelector("#config-answer-type").value;
+      theme = elements.configTheme.value;
 
       if (!time.length) {
         time = ['Ενεστώτας', 'Αόριστος', 'Μέλλοντας'];
@@ -327,11 +369,18 @@
 
       localStorage.setItem("time", JSON.stringify(time));
       localStorage.setItem("answerType", answerType);
+      localStorage.setItem("theme", theme);
 
       elements.questAnswerTextWrapper.style.display = answerType === "полнотекстовый ввод" ? "flex" : "none";
       elements.questAnswerTest.style.display = answerType === "тест" ? "flex" : "none";
       elements.questAnswer.style.display = answerType === "простое открытие" ? "block" : "none";
       elements.statistics.style.display = answerType !== "простое открытие" ? "block" : "none";
+
+      if (theme === "светлая") {
+        document.body.classList.add("light");
+      } else {
+        document.body.classList.remove("light");
+      }
       updateStatistics();
     }
 
@@ -363,19 +412,19 @@
       if (!e || (e.key === "Enter" || e.code === "Enter")) {
         const input = document.querySelector("#quest-answer-text");
         if (input.value.toLowerCase().replace("θα ", "").trim() === randomVerb.verb[randomVerb.time][randomVerb.person].toLowerCase().replace("θα ", "").trim()) {
-          input.style.color = "#7f7";
+          input.style.color = "var(--text-color-correct)";
           countSuccess();
           setTimeout(() => {
             input.value = "";
-            nextRandomVerb()
+            nextRandomVerb();
           }, 500);
         } else {
           countMistakes();
-          input.style.color = "#f77";
+          input.style.color = "var(--text-color-wrong)";
         }
 
         setTimeout(() => {
-          input.style.color = "#fff";
+          input.style.color = "var(--text-color)";
         }, 500);
       }
     }
@@ -383,19 +432,19 @@
     function selectTestAnswer(e) {
       const input = e.target;
       if (input.value.toLowerCase().replace("θα ", "").trim() === randomVerb.verb[randomVerb.time][randomVerb.person].toLowerCase().replace("θα ", "").trim()) {
-        input.style.color = "#7f7";
+        input.style.color = "var(--text-color-correct)";
         countSuccess();
         setTimeout(() => {
           input.value = "";
           nextRandomVerb();
         }, 500);
       } else {
-        input.style.color = "#f77";
+        input.style.color = "var(--text-color-wrong)";
         countMistakes();
       }
 
       setTimeout(() => {
-        input.style.color = "#fff";
+        input.style.color = "var(--text-color)";
       }, 500);
     }
 
@@ -413,18 +462,20 @@
       elements.statistics.textContent = `отвечено ${totalAnswered}, ошибок ${totalMistakes} (точность ${Math.round(100 * totalAnswered / ((totalAnswered + totalMistakes) || 1))}%)`;
     }
 
-    setTimeout(() => {
-      if (localStorage.getItem("answerType")) {
-        elements.configAnswerType.value = localStorage.getItem("answerType");
-      }
-      if (localStorage.getItem("time")) {
-        const defaultTime = JSON.parse(localStorage.getItem("time"));
-        document.querySelector("input[data=Ενεστώτας]").checked = defaultTime.indexOf("Ενεστώτας") > -1;
-        document.querySelector("input[data=Αόριστος]").checked = defaultTime.indexOf("Αόριστος") > -1;
-        document.querySelector("input[data=Μέλλοντας]").checked = defaultTime.indexOf("Μέλλοντας") > -1;
-      }
-      updateConfig();
-    });
+    if (localStorage.getItem("answerType")) {
+      elements.configAnswerType.value = localStorage.getItem("answerType");
+    }
+    if (localStorage.getItem("theme")) {
+      elements.configTheme.value = localStorage.getItem("theme");
+    }
+    if (localStorage.getItem("time")) {
+      const defaultTime = JSON.parse(localStorage.getItem("time"));
+      document.querySelector("input[data=Ενεστώτας]").checked = defaultTime.indexOf("Ενεστώτας") > -1;
+      document.querySelector("input[data=Αόριστος]").checked = defaultTime.indexOf("Αόριστος") > -1;
+      document.querySelector("input[data=Μέλλοντας]").checked = defaultTime.indexOf("Μέλλοντας") > -1;
+    }
+    updateConfig();
+
     setTimeout(nextRandomVerb, 1000);
 
     window.addEventListener("keypress", (e) => {
@@ -545,8 +596,8 @@
       });
 
       const wrongPersons = ['εγώ', 'εσύ', 'αυτός/αυτή', 'εμείς', 'εσείς', 'αυτοί']
-              .filter(p => p !== randomVerb.person)
-              .sort(() => Math.random() - 0.5);
+        .filter(p => p !== randomVerb.person)
+        .sort(() => Math.random() - 0.5);
 
       while (randomVariants.length < 3) {
         randomVariants.push(randomVerb.verb[randomVerb.time][wrongPersons.shift()]);
@@ -555,7 +606,7 @@
       randomVariants.sort(() => Math.random() - 0.5);
 
       const answers = [elements.testAnswer1, elements.testAnswer2, elements.testAnswer3, elements.testAnswer4]
-              .sort(() => Math.random() - 0.5);
+        .sort(() => Math.random() - 0.5);
 
       answers[0].value = correctAnswer;
       answers[1].value = randomVariants[0];
