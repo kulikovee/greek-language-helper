@@ -16,10 +16,16 @@
     width: 100%;
   }
 
+  html, body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
   body {
     display: flex;
-    align-items: center;
-    justify-content: center;
+    flex-direction: column;
   }
 
   input[type=button], select {
@@ -46,8 +52,8 @@
   }
 
   #verbs {
-    max-height: 70vh;
-    overflow-y: scroll;
+    max-height: calc(100vh - 250px);
+    overflow-y: auto;
   }
 
   #verbs td {
@@ -82,18 +88,15 @@
 
   #config-btn, #verbs-btn {
     font-size: 16pt;
-    position: fixed;
     border: 1px solid white;
     border-radius: 5px;
     padding: 10px;
-    right: 15px;
-    bottom: 15px;
     cursor: pointer;
+    align-self: end;
   }
 
   #verbs-btn {
-    right: unset;
-    left: 15px;
+    align-self: start;
   }
 
   #config-btn:hover, #verbs-btn:hover {
@@ -152,9 +155,9 @@
   }
 
   #statistics {
-    position: fixed;
-    left: 15px;
-    top: 15px;
+    display: flex;
+    flex: 0 0 auto;
+    padding: 15px;
     color: rgba(255, 255, 255, 0.5);
   }
 
@@ -176,55 +179,79 @@
       justify-content: center;
       flex-direction: column;
     }
+
+    #quest-answer {
+      font-size: 35pt;
+    }
   }
 
+  .content-wrapper {
+    display: flex;
+    flex: 1 1 auto;
+    align-items: center;
+    justify-content: center;
+    padding: 15px;
+  }
+
+  .footer {
+    display: flex;
+    flex: 0 0 auto;
+    padding: 15px;
+    flex-direction: row;
+    justify-content: space-between;
+  }
 </style>
 <div id="statistics"></div>
 
-<div id="quest">
-  <div id="quest-title">...</div>
-  <div id="quest-answer">...</div>
-  <div id="quest-answer-text-wrapper">
-    <input id="quest-answer-text" />
-    <input type="button" id="check-text-answer" value="проверить" />
+<div class="content-wrapper">
+  <div id="quest">
+    <div id="quest-title">...</div>
+    <div id="quest-answer">...</div>
+    <div id="quest-answer-text-wrapper">
+      <input id="quest-answer-text" />
+      <input type="button" id="check-text-answer" value="проверить" />
+    </div>
+    <div id="quest-answer-test">
+      <input type="button" class="test-answer" id="test-answer-1" />
+      <input type="button" class="test-answer" id="test-answer-2" />
+      <input type="button" class="test-answer" id="test-answer-3" />
+      <input type="button" class="test-answer" id="test-answer-4" />
+    </div>
   </div>
-  <div id="quest-answer-test">
-    <input type="button" class="test-answer" id="test-answer-1" />
-    <input type="button" class="test-answer" id="test-answer-2" />
-    <input type="button" class="test-answer" id="test-answer-3" />
-    <input type="button" class="test-answer" id="test-answer-4" />
+
+  <div id="config">
+    <div class="config-time-row">
+      <label for="config-answer-type" class="config-answer-text">Ввод ответа:</label>
+      <select id="config-answer-type">
+        <option value="простое открытие">простое открытие</option>
+        <option value="тест">тест</option>
+        <option value="полнотекстовый ввод">полнотекстовый ввод</option>
+      </select>
+    </div>
+    <hr />
+    <div class="config-time-row">
+      <input id="config-time-present" class="config-time" type="checkbox" data="Ενεστώτας" checked />
+      <label for="config-time-present" class="config-time"> — настоящее</label>
+    </div>
+    <div class="config-time-row">
+      <input id="config-time-past" class="config-time" type="checkbox" data="Αόριστος" checked />
+      <label for="config-time-past" class="config-time"> — прошлое</label>
+    </div>
+    <div class="config-time-row">
+      <input id="config-time-future" class="config-time" type="checkbox" data="Μέλλοντας" checked />
+      <label for="config-time-future" class="config-time"> — будущее</label>
+    </div>
+    <hr />
+    <input id="config-close" type="button" value="закрыть" />
   </div>
+
+  <div id="verbs"></div>
 </div>
 
-<button id="verbs-btn">глагол</button>
-<button id="config-btn">настройки</button>
-
-<div id="config">
-  <div class="config-time-row">
-    <label for="config-answer-type" class="config-answer-text">Ввод ответа:</label>
-    <select id="config-answer-type">
-      <option value="простое открытие">простое открытие</option>
-      <option value="тест">тест</option>
-      <option value="полнотекстовый ввод">полнотекстовый ввод</option>
-    </select>
-  </div>
-  <hr />
-  <div class="config-time-row">
-    <input id="config-time-present" class="config-time" type="checkbox" data="Ενεστώτας" checked />
-    <label for="config-time-present" class="config-time"> — настоящее</label>
-  </div>
-  <div class="config-time-row">
-    <input id="config-time-past" class="config-time" type="checkbox" data="Αόριστος" checked />
-    <label for="config-time-past" class="config-time"> — прошлое</label>
-  </div>
-  <div class="config-time-row">
-    <input id="config-time-future" class="config-time" type="checkbox" data="Μέλλοντας" checked />
-    <label for="config-time-future" class="config-time"> — будущее</label>
-  </div>
-  <hr />
-  <input id="config-close" type="button" value="закрыть" />
+<div class="footer">
+  <button id="verbs-btn">глагол</button>
+  <button id="config-btn">настройки</button>
 </div>
-
 
 <script>
   window.onload = async () => {
@@ -242,6 +269,7 @@
       testAnswer3: document.querySelector("#test-answer-3"),
       testAnswer4: document.querySelector("#test-answer-4"),
       statistics: document.querySelector("#statistics"),
+      verbs: document.querySelector("#verbs"),
     };
 
     document.querySelectorAll("input.config-time, #config-answer-type").forEach(el => el.onchange = updateConfig);
@@ -414,12 +442,7 @@
     });
 
     function updateVerbList() {
-      if (document.getElementById("verbs")) {
-        document.getElementById("verbs").remove();
-      }
-
-      const verbsWrapper = document.createElement("div");
-      verbsWrapper.id = "verbs";
+      elements.verbs.innerHTML = "";
       const verbsList = document.createElement("table");
       ["Ενεστώτας", "Αόριστος", "Μέλλοντας"].forEach((t, i) => {
         Object.keys(randomVerb.verb[t]).forEach((key) => {
@@ -434,9 +457,7 @@
           verbsList.append(verbsListItem);
         });
       });
-      verbsWrapper.append(verbsList);
-      document.body.append(verbsWrapper);
-      elements.verbs = verbsWrapper;
+      elements.verbs.append(verbsList);
     }
 
     function generateTestAnswers(correctAnswer) {
